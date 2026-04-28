@@ -1,10 +1,14 @@
 package fr.univrennes.istic.l2gen.application.gui.panels.report.views.notebook;
 
 import java.awt.BorderLayout;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.Box;
+import javax.swing.JComponent;
 import javax.swing.DefaultListModel;
 import javax.swing.DropMode;
 import javax.swing.JButton;
@@ -15,12 +19,15 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
+import javax.swing.KeyStroke;
+import javax.swing.AbstractAction;
 import javax.swing.SwingUtilities;
 
 import fr.univrennes.istic.l2gen.application.core.icon.Ico;
 import fr.univrennes.istic.l2gen.application.core.lang.Lang;
 import fr.univrennes.istic.l2gen.application.core.notebook.NoteBookValue;
 import fr.univrennes.istic.l2gen.application.core.services.notebook.NoteBookService;
+import fr.univrennes.istic.l2gen.application.gui.dialog.export.ExportDialog;
 import fr.univrennes.istic.l2gen.application.gui.GUIController;
 
 public class NoteBook extends JPanel {
@@ -59,6 +66,7 @@ public class NoteBook extends JPanel {
 
         buildContextMenu();
         buildToolBar();
+        registerShortcuts();
 
         list.addMouseListener(new MouseAdapter() {
             @Override
@@ -147,10 +155,42 @@ public class NoteBook extends JPanel {
             GUIController.getInstance().getMainView().getReportPanel().refresh();
         });
 
+        exportButton.addActionListener(event -> ExportDialog.showDialog(this));
+
         toolBar.add(undoButton);
         toolBar.add(redoButton);
         toolBar.add(Box.createHorizontalGlue());
         toolBar.add(exportButton);
+    }
+
+    private void registerShortcuts() {
+        int menuMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+
+        list.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, menuMask), "notebook.undo");
+        list.getActionMap().put("notebook.undo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!NoteBookService.canUndo()) {
+                    return;
+                }
+                NoteBookService.undo();
+                GUIController.getInstance().getMainView().getReportPanel().refresh();
+            }
+        });
+
+        list.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, menuMask), "notebook.redo");
+        list.getActionMap().put("notebook.redo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!NoteBookService.canRedo()) {
+                    return;
+                }
+                NoteBookService.redo();
+                GUIController.getInstance().getMainView().getReportPanel().refresh();
+            }
+        });
     }
 
     private void showContextMenu(MouseEvent e) {
