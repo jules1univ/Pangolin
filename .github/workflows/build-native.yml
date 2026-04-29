@@ -1,0 +1,155 @@
+name: Build Native
+on:
+  release:
+    types: [created]
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Build shaded JAR
+        run: mvn -B package -DskipTests
+
+      - name: Download JavaFX SDK for Linux
+        run: |
+          wget -q https://download2.gluonhq.com/openjfx/21.0.3/openjfx-21.0.3_linux-x64_bin-sdk.zip -O javafx-sdk.zip
+          unzip -q javafx-sdk.zip -d javafx-sdk
+
+      - name: Create native installer (Linux deb)
+        run: |
+          jpackage \
+            --input target \
+            --main-jar Pangol1-1.0-SNAPSHOT.jar \
+            --main-class fr.univrennes.istic.l2gen.application.Pangol1 \
+            --name Pangol1 \
+            --app-version ${{ github.event.release.tag_name }} \
+            --icon src/resources/icons/logo.png \
+            --type deb \
+            --dest dist \
+            --module-path javafx-sdk/javafx-sdk-21.0.3/lib \
+            --add-modules javafx.controls,javafx.web,javafx.swing,javafx.fxml \
+            --java-options "--add-opens=java.base/java.nio=ALL-UNNAMED" \
+            --java-options "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED" \
+            --java-options "-Djava.library.path=javafx-sdk/javafx-sdk-21.0.3/lib"
+
+      - name: Upload Linux installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pangol1-linux
+          path: dist/*.deb
+
+      - name: Attach to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.deb
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Build shaded JAR
+        run: mvn -B package -DskipTests
+
+      - name: Download JavaFX SDK for macOS
+        run: |
+          wget -q https://download2.gluonhq.com/openjfx/21.0.3/openjfx-21.0.3_osx-x64_bin-sdk.zip -O javafx-sdk.zip
+          unzip -q javafx-sdk.zip -d javafx-sdk
+
+      - name: Create native installer (macOS dmg)
+        run: |
+          jpackage \
+            --input target \
+            --main-jar Pangol1-1.0-SNAPSHOT.jar \
+            --main-class fr.univrennes.istic.l2gen.application.Pangol1 \
+            --name Pangol1 \
+            --app-version ${{ github.event.release.tag_name }} \
+            --icon src/resources/icons/logo.png \
+            --type dmg \
+            --dest dist \
+            --module-path javafx-sdk/javafx-sdk-21.0.3/lib \
+            --add-modules javafx.controls,javafx.web,javafx.swing,javafx.fxml \
+            --java-options "--add-opens=java.base/java.nio=ALL-UNNAMED" \
+            --java-options "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED" \
+            --java-options "-Djava.library.path=javafx-sdk/javafx-sdk-21.0.3/lib"
+
+      - name: Upload macOS installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pangol1-macos
+          path: dist/*.dmg
+
+      - name: Attach to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.dmg
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Build shaded JAR
+        run: mvn -B package -DskipTests
+
+      - name: Download JavaFX SDK for Windows
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://download2.gluonhq.com/openjfx/21.0.3/openjfx-21.0.3_windows-x64_bin-sdk.zip" -OutFile "javafx-sdk.zip"
+          Expand-Archive -Path "javafx-sdk.zip" -DestinationPath "javafx-sdk"
+
+      - name: Create native installer (Windows msi)
+        shell: pwsh
+        run: |
+          jpackage `
+            --input target `
+            --main-jar Pangol1-1.0-SNAPSHOT.jar `
+            --main-class fr.univrennes.istic.l2gen.application.Pangol1 `
+            --name Pangol1 `
+            --app-version ${{ github.event.release.tag_name }} `
+            --icon src/resources/icons/logo.png `
+            --type msi `
+            --dest dist `
+            --module-path javafx-sdk/javafx-sdk-21.0.3/lib `
+            --add-modules javafx.controls,javafx.web,javafx.swing,javafx.fxml `
+            --java-options "--add-opens=java.base/java.nio=ALL-UNNAMED" `
+            --java-options "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED" `
+            --java-options "-Djava.library.path=javafx-sdk/javafx-sdk-21.0.3/lib" `
+            --win-menu `
+            --win-shortcut
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pangol1-windows
+          path: dist/*.msi
+
+      - name: Attach to release
+        uses: actions/upload-artifact@v4
+        with:
+          path: dist/*.msi
