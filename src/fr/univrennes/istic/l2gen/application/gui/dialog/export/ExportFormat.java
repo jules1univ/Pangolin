@@ -4,9 +4,8 @@ import fr.univrennes.istic.l2gen.application.core.lang.Lang;
 
 public enum ExportFormat {
     HTML("report.export.format.html", "html"),
-    TXT("report.export.format.txt", "txt"),
-    MD("report.export.format.md", "md"),
-    PDF("report.export.format.pdf", "pdf");
+    PDF("report.export.format.pdf", "pdf"),
+    MD("report.export.format.md", "md");
 
     private final String displayName;
     private final String fileExtension;

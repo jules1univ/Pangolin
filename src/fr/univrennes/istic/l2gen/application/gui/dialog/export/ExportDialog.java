@@ -10,28 +10,29 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import com.formdev.flatlaf.util.SystemFileChooser;
 
 import fr.univrennes.istic.l2gen.application.core.lang.Lang;
-import fr.univrennes.istic.l2gen.application.core.services.ExportService;
+import fr.univrennes.istic.l2gen.application.core.services.export.ExportService;
+import fr.univrennes.istic.l2gen.application.core.services.export.ExportTheme;
 import fr.univrennes.istic.l2gen.application.gui.GUIController;
+
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
+import javafx.scene.web.WebView;
 
 public final class ExportDialog extends JDialog {
 
@@ -39,10 +40,13 @@ public final class ExportDialog extends JDialog {
     private static final int DIALOG_HEIGHT = 620;
 
     private final JComboBox<ExportFormat> formatBox = new JComboBox<>(ExportFormat.values());
+    private final JComboBox<ExportTheme> themeBox = new JComboBox<>(ExportTheme.values());
     private final JTextField titleField = new JTextField(30);
     private final JCheckBox includeTitleBox = new JCheckBox(Lang.get("report.export.include_title"), true);
     private final JCheckBox openAfterExportBox = new JCheckBox(Lang.get("report.export.open_after"), false);
-    private final JEditorPane previewPane = new JEditorPane();
+
+    private final JFXPanel previewPanel = new JFXPanel();
+    private WebView webView;
 
     private final JButton exportButton = new JButton(Lang.get("report.export.action"));
     private final JButton cancelButton = new JButton(Lang.get("report.export.cancel"));
@@ -62,14 +66,17 @@ public final class ExportDialog extends JDialog {
         JPanel form = buildFormPanel();
         root.add(form, BorderLayout.NORTH);
 
-        previewPane.setEditable(false);
-        previewPane.setContentType("text/html");
-        previewPane
-                .setText(ExportService.exportHTML(titleField.getText(), includeTitleBox.isSelected()));
+        JPanel previewWrapper = new JPanel(new BorderLayout());
+        previewWrapper.setBorder(BorderFactory.createTitledBorder(Lang.get("report.export.preview")));
+        previewWrapper.add(previewPanel, BorderLayout.CENTER);
+        root.add(previewWrapper, BorderLayout.CENTER);
 
-        JScrollPane previewScroll = new JScrollPane(previewPane);
-        previewScroll.setBorder(BorderFactory.createTitledBorder(Lang.get("report.export.preview")));
-        root.add(previewScroll, BorderLayout.CENTER);
+        Platform.runLater(() -> {
+            webView = new WebView();
+            webView.setContextMenuEnabled(false);
+            previewPanel.setScene(new Scene(webView));
+            updatePreview();
+        });
 
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         cancelButton.addActionListener(event -> dispose());
@@ -112,6 +119,25 @@ public final class ExportDialog extends JDialog {
         gbc.gridy++;
         gbc.gridx = 0;
         gbc.weightx = 0;
+        form.add(new JLabel(Lang.get("report.export.theme")), gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        themeBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> {
+            JLabel label = new JLabel(value != null ? value.getLabel() : "");
+            if (isSelected) {
+                label.setOpaque(true);
+                label.setBackground(list.getSelectionBackground());
+                label.setForeground(list.getSelectionForeground());
+            }
+            return label;
+        });
+        themeBox.setSelectedItem(ExportTheme.fromId(System.getProperty(ExportTheme.PROPERTY_KEY)));
+        form.add(themeBox, gbc);
+
+        gbc.gridy++;
+        gbc.gridx = 0;
+        gbc.weightx = 0;
         form.add(new JLabel(Lang.get("report.export.file_title")), gbc);
 
         gbc.gridx = 1;
@@ -130,12 +156,9 @@ public final class ExportDialog extends JDialog {
     }
 
     private void refreshPreviewOnChange() {
-        titleField.getDocument().addDocumentListener((ExportDocumentListener) e -> {
-            previewPane.setText(
-                    ExportService.exportHTML(titleField.getText(), includeTitleBox.isSelected()));
-        });
-        includeTitleBox.addActionListener(event -> previewPane
-                .setText(ExportService.exportHTML(titleField.getText(), includeTitleBox.isSelected())));
+        titleField.getDocument().addDocumentListener((ExportDocumentListener) e -> updatePreview());
+        includeTitleBox.addActionListener(event -> updatePreview());
+        themeBox.addActionListener(event -> updatePreview());
         formatBox.addActionListener(event -> updateFileTitle());
     }
 
@@ -152,12 +175,14 @@ public final class ExportDialog extends JDialog {
             return;
         }
 
+        applyThemeSelection();
+
         String baseName = titleField.getText().trim();
         if (baseName.isBlank()) {
             baseName = Lang.get("report.export.default_title");
         }
 
-        File file = showSaveDialog(baseName, format.getExtension());
+        File file = showSaveDialog(baseName, "zip");
         if (file == null) {
             return;
         }
@@ -198,6 +223,25 @@ public final class ExportDialog extends JDialog {
         }
 
         return file;
+    }
+
+    private void updatePreview() {
+        applyThemeSelection();
+        String htmlContent = ExportService.exportHTML(titleField.getText(), includeTitleBox.isSelected());
+        Platform.runLater(() -> {
+            if (webView != null) {
+                webView.getEngine().loadContent(htmlContent, "text/html");
+            }
+        });
+    }
+
+    private void applyThemeSelection() {
+        ExportTheme theme = (ExportTheme) themeBox.getSelectedItem();
+        if (theme == null) {
+            System.clearProperty(ExportTheme.PROPERTY_KEY);
+            return;
+        }
+        System.setProperty(ExportTheme.PROPERTY_KEY, theme.getId());
     }
 
     public static void showDialog(Component parent) {

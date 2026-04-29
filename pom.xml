@@ -17,7 +17,8 @@
         <duckdb.version>1.2.1</duckdb.version>
         <junit.version>4.13.2</junit.version>
         <flatlaf.version>3.7.1</flatlaf.version>
-        <svg.salamander.version>1.1.5.3</svg.salamander.version>
+        <openhtmltopdf.version>1.0.10</openhtmltopdf.version>
+        <javafx.version>21.0.3</javafx.version>
     </properties>
 
     <dependencies>
@@ -57,6 +58,37 @@
             <artifactId>batik-codec</artifactId>
             <version>1.17</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.openhtmltopdf</groupId>
+            <artifactId>openhtmltopdf-pdfbox</artifactId>
+            <version>${openhtmltopdf.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-web</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
