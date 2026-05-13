@@ -85,6 +85,7 @@ public final class DataSettingsPanel extends SettingSectionPanel {
         addRow(new SettingRowPanel(Lang.get("report.settings.data.col_bigger_group"), biggerGroupColumn));
 
         updateColumnComboBoxes();
+        updateLabels();
     }
 
     private void updateColumnComboBoxes() {
@@ -120,48 +121,44 @@ public final class DataSettingsPanel extends SettingSectionPanel {
         biggerGroupColumn.setModel(new JComboBox<>(colsWithNone).getModel());
 
         valueColumn.addItemListener(e -> {
-            String newAxisValueX = null;
-            String newAxisValueY = null;
-            DataTable table = getTable();
-            if (table != null) {
-                newAxisValueX = table.getColumnName(getValueColumn());
-                newAxisValueY = table.getColumnName(getGroupColumn());
-            }
-
-            if (shared.axis().isXVisible()
-                    && shared.axis().getXLabel().equals(Lang.get("report.settings.chart.default_labelx"))
-                    && newAxisValueX != null) {
-                shared.axis().setXLabel(newAxisValueX);
-            }
-
-            if (shared.chart().getTitleField().getText().equals(Lang.get("report.settings.chart.default_title"))
-                    && newAxisValueX != null && newAxisValueY != null) {
-                shared.chart().getTitleField()
-                        .setText(Lang.get("report.settings.chart.generated_title", newAxisValueX, newAxisValueY));
-            }
+            updateLabels();
         });
 
         groupColumn.addItemListener(e -> {
-            String newAxisValueX = null;
-            String newAxisValueY = null;
-            DataTable table = getTable();
-            if (table != null) {
-                newAxisValueX = table.getColumnName(getValueColumn());
-                newAxisValueY = table.getColumnName(getGroupColumn());
-            }
-
-            if (shared.axis().isYVisible()
-                    && shared.axis().getYLabel().equals(Lang.get("report.settings.chart.default_labely"))
-                    && newAxisValueY != null) {
-                shared.axis().setYLabel(newAxisValueY);
-            }
-
-            if (shared.chart().getTitleField().getText().equals(Lang.get("report.settings.chart.default_title"))
-                    && newAxisValueX != null && newAxisValueY != null) {
-                shared.chart().getTitleField()
-                        .setText(Lang.get("report.settings.chart.generated_title", newAxisValueX, newAxisValueY));
-            }
+            updateLabels();
         });
+    }
+
+    private void updateLabels() {
+        if (shared == null) {
+            return;
+        }
+
+        String newAxisValueX = null;
+        String newAxisValueY = null;
+        DataTable table = getTable();
+        if (table != null) {
+            newAxisValueX = table.getColumnName(getValueColumn());
+            newAxisValueY = table.getColumnName(getGroupColumn());
+        }
+
+        if (shared.axis().isXVisible()
+                && shared.axis().getXLabel().equals(Lang.get("report.settings.chart.default_labelx"))
+                && newAxisValueX != null) {
+            shared.axis().setXLabel(newAxisValueX);
+        }
+
+        if (shared.axis().isYVisible()
+                && shared.axis().getYLabel().equals(Lang.get("report.settings.chart.default_labely"))
+                && newAxisValueY != null) {
+            shared.axis().setYLabel(newAxisValueY);
+        }
+
+        if (shared.chart().getTitleField().getText().equals(Lang.get("report.settings.chart.default_title"))
+                && newAxisValueX != null && newAxisValueY != null) {
+            shared.chart().getTitleField()
+                    .setText(Lang.get("report.settings.chart.generated_title", newAxisValueX, newAxisValueY));
+        }
     }
 
     private static interface ColumnFilter {
