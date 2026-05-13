@@ -3,175 +3,54 @@ on:
   push:
     branches: [main]
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'maven'
-
-      - name: Build shaded JAR
-        run: mvn -B clean package -DskipTests -U
-
-      - name: Prepare staging directory
-        run: |
-          mkdir -p staging
-          cp target/Pangol1-1.0-SNAPSHOT.jar staging/
-
-      - name: Download JavaFX jmods for Linux
-        run: |
-          wget -q https://download2.gluonhq.com/openjfx/21.0.3/openjfx-21.0.3_linux-x64_bin-jmods.zip -O javafx-jmods.zip
-          unzip -q javafx-jmods.zip -d javafx-jmods
-
-      - name: Detect required modules
-        run: |
-          DETECTED=$(jdeps \
-            --class-path staging/Pangol1-1.0-SNAPSHOT.jar \
-            --multi-release 21 \
-            --ignore-missing-deps \
-            --print-module-deps \
-            staging/Pangol1-1.0-SNAPSHOT.jar 2>/dev/null || true)
-          MODULES="javafx.controls,javafx.web,javafx.swing,javafx.fxml,java.desktop,java.logging,java.naming,java.sql,java.xml,jdk.unsupported"
-          if [ -n "$DETECTED" ]; then
-            MODULES="$MODULES,$DETECTED"
-          fi
-          echo "JPACKAGE_MODULES=$MODULES" >> $GITHUB_ENV
-
-      - name: Create native installer (Linux deb)
-        run: |
-          jpackage \
-            --input staging \
-            --main-jar Pangol1-1.0-SNAPSHOT.jar \
-            --main-class fr.univrennes.istic.l2gen.application.Pangol1 \
-            --name Pangol1 \
-            --app-version 1.0.0 \
-            --icon src/resources/icons/logo.png \
-            --type deb \
-            --dest dist \
-            --module-path javafx-jmods/javafx-jmods-21.0.3 \
-            --add-modules $JPACKAGE_MODULES \
-            --java-options "--add-opens=java.base/java.nio=ALL-UNNAMED" \
-            --java-options "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
-
-      - name: Upload Linux installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: Pangol1-linux
-          path: dist/*.deb
-
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'maven'
-
-      - name: Build shaded JAR
-        run: mvn -B clean package -DskipTests -U
-
-      - name: Prepare staging directory
-        run: |
-          mkdir -p staging
-          cp target/Pangol1-1.0-SNAPSHOT.jar staging/
-
-      - name: Download JavaFX jmods for macOS
-        run: |
-          wget -q https://download2.gluonhq.com/openjfx/21.0.3/openjfx-21.0.3_osx-x64_bin-jmods.zip -O javafx-jmods.zip
-          unzip -q javafx-jmods.zip -d javafx-jmods
-
-      - name: Detect required modules
-        run: |
-          DETECTED=$(jdeps \
-            --class-path staging/Pangol1-1.0-SNAPSHOT.jar \
-            --multi-release 21 \
-            --ignore-missing-deps \
-            --print-module-deps \
-            staging/Pangol1-1.0-SNAPSHOT.jar 2>/dev/null || true)
-          MODULES="javafx.controls,javafx.web,javafx.swing,javafx.fxml,java.desktop,java.logging,java.naming,java.sql,java.xml,jdk.unsupported"
-          if [ -n "$DETECTED" ]; then
-            MODULES="$MODULES,$DETECTED"
-          fi
-          echo "JPACKAGE_MODULES=$MODULES" >> $GITHUB_ENV
-
-      - name: Create native installer (macOS dmg)
-        run: |
-          jpackage \
-            --input staging \
-            --main-jar Pangol1-1.0-SNAPSHOT.jar \
-            --main-class fr.univrennes.istic.l2gen.application.Pangol1 \
-            --name Pangol1 \
-            --app-version 1.0.0 \
-            --icon src/resources/icons/logo.png \
-            --type dmg \
-            --dest dist \
-            --module-path javafx-jmods/javafx-jmods-21.0.3 \
-            --add-modules $JPACKAGE_MODULES \
-            --java-options "--add-opens=java.base/java.nio=ALL-UNNAMED" \
-            --java-options "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
-
-      - name: Upload macOS installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: Pangol1-macos
-          path: dist/*.dmg
-
-  build-windows:
+   build-windows:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
+ 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
-
+ 
       - name: Build shaded JAR
         run: mvn -B clean package -DskipTests -U
-
+ 
       - name: Prepare staging directory
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path staging
           Copy-Item target\Pangol1-1.0-SNAPSHOT.jar staging\
-
+ 
       - name: Download JavaFX jmods for Windows
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://download2.gluonhq.com/openjfx/21.0.3/openjfx-21.0.3_windows-x64_bin-jmods.zip" -OutFile "javafx-jmods.zip"
           Expand-Archive -Path "javafx-jmods.zip" -DestinationPath "javafx-jmods"
-
+ 
       - name: Detect required modules
         shell: pwsh
         run: |
-          $detected = & jdeps `
+          $rawOutput = & jdeps `
             --class-path staging\Pangol1-1.0-SNAPSHOT.jar `
             --multi-release 21 `
             --ignore-missing-deps `
             --print-module-deps `
             staging\Pangol1-1.0-SNAPSHOT.jar 2>$null
+          $detected = ($rawOutput -split "`n" `
+            | Where-Object { $_ -notmatch '^Warning:' -and $_.Trim() -ne '' } `
+            | Select-Object -Last 1).Trim()
           $baseModules = "javafx.controls,javafx.web,javafx.swing,javafx.fxml,java.desktop,java.logging,java.naming,java.sql,java.xml,jdk.unsupported"
-          if ($detected -and $detected.Trim() -ne "") {
-            $allModules = "$baseModules,$($detected.Trim())"
+          if ($detected -ne "") {
+            $allModules = "$baseModules,$detected"
           } else {
             $allModules = $baseModules
           }
           echo "JPACKAGE_MODULES=$allModules" >> $env:GITHUB_ENV
-
+ 
       - name: Create native installer (Windows msi)
         shell: pwsh
         run: |
@@ -191,7 +70,7 @@ jobs:
             --java-options "-Djava.library.path=${"$"}APPDIR" `
             --win-menu `
             --win-shortcut
-
+ 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
