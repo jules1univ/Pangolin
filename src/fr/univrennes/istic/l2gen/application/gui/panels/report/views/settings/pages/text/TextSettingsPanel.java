@@ -48,41 +48,41 @@ public final class TextSettingsPanel extends SettingSectionPanel implements IRep
         JToolBar toolbar = new JToolBar();
         toolbar.setFloatable(false);
 
-        JButton boldButton = new JButton(Config.getIcon("icons/bold.svg"));
+        JButton boldButton = new JButton(Config.getIcon("icons/bold.svg", 1.5f));
         boldButton.setFont(boldButton.getFont().deriveFont(Font.BOLD));
         boldButton.setToolTipText(Lang.get("report.settings.text.bold"));
         boldButton.addActionListener(event -> applyBold());
 
-        JButton italicButton = new JButton(Config.getIcon("icons/italic.svg"));
+        JButton italicButton = new JButton(Config.getIcon("icons/italic.svg", 1.5f));
         italicButton.setFont(italicButton.getFont().deriveFont(Font.ITALIC));
         italicButton.setToolTipText(Lang.get("report.settings.text.italic"));
         italicButton.addActionListener(event -> applyItalic());
 
-        JButton underlineButton = new JButton(Config.getIcon("icons/underlined.svg"));
+        JButton underlineButton = new JButton(Config.getIcon("icons/underlined.svg", 1.5f));
         underlineButton.setToolTipText(Lang.get("report.settings.text.underline"));
         underlineButton.addActionListener(event -> applyUnderline());
 
-        JButton strikethroughButton = new JButton(Config.getIcon("icons/strikethrough.svg"));
+        JButton strikethroughButton = new JButton(Config.getIcon("icons/strikethrough.svg", 1.5f));
         strikethroughButton.setToolTipText(Lang.get("report.settings.text.strikethrough"));
         strikethroughButton.addActionListener(event -> applyStrikethrough());
 
-        JButton alignLeftButton = new JButton(Config.getIcon("icons/alignleft.svg"));
+        JButton alignLeftButton = new JButton(Config.getIcon("icons/alignleft.svg", 1.5f));
         alignLeftButton.setToolTipText(Lang.get("report.settings.text.alignleft"));
         alignLeftButton.addActionListener(event -> applyAlignment(StyleConstants.ALIGN_LEFT));
 
-        JButton alignCenterButton = new JButton(Config.getIcon("icons/aligncenter.svg"));
+        JButton alignCenterButton = new JButton(Config.getIcon("icons/aligncenter.svg", 1.5f));
         alignCenterButton.setToolTipText(Lang.get("report.settings.text.aligncenter"));
         alignCenterButton.addActionListener(event -> applyAlignment(StyleConstants.ALIGN_CENTER));
 
-        JButton alignRightButton = new JButton(Config.getIcon("icons/alignright.svg"));
+        JButton alignRightButton = new JButton(Config.getIcon("icons/alignright.svg", 1.5f));
         alignRightButton.setToolTipText(Lang.get("report.settings.text.alignright"));
         alignRightButton.addActionListener(event -> applyAlignment(StyleConstants.ALIGN_RIGHT));
 
-        JButton textColorButton = new JButton(Config.getIcon("icons/textcolor.svg"));
+        JButton textColorButton = new JButton(Config.getIcon("icons/textcolor.svg", 1.5f));
         textColorButton.setToolTipText(Lang.get("report.settings.text.textcolor"));
         textColorButton.addActionListener(event -> applyTextColor());
 
-        JButton backgroundColorButton = new JButton(Config.getIcon("icons/textbackground.svg"));
+        JButton backgroundColorButton = new JButton(Config.getIcon("icons/textbackground.svg", 1.5f));
         backgroundColorButton.setToolTipText(Lang.get("report.settings.text.backgroundcolor"));
         backgroundColorButton.addActionListener(event -> applyBackgroundColor());
 

@@ -33,9 +33,15 @@ public final class DataSettingsPanel extends SettingSectionPanel {
     private JCheckBox filterInclude;
     private JCheckBox percentageCheck;
 
+    private SharedChartSettings shared;
+
     public DataSettingsPanel() {
         super(Lang.get("report.settings.data"));
         build();
+    }
+
+    public void setShared(SharedChartSettings shared) {
+        this.shared = shared;
     }
 
     private void build() {
@@ -112,6 +118,50 @@ public final class DataSettingsPanel extends SettingSectionPanel {
         System.arraycopy(allCols, 0, colsWithNone, 1, allCols.length);
 
         biggerGroupColumn.setModel(new JComboBox<>(colsWithNone).getModel());
+
+        valueColumn.addItemListener(e -> {
+            String newAxisValueX = null;
+            String newAxisValueY = null;
+            DataTable table = getTable();
+            if (table != null) {
+                newAxisValueX = table.getColumnName(getValueColumn());
+                newAxisValueY = table.getColumnName(getGroupColumn());
+            }
+
+            if (shared.axis().isXVisible()
+                    && shared.axis().getXLabel().equals(Lang.get("report.settings.chart.default_labelx"))
+                    && newAxisValueX != null) {
+                shared.axis().setXLabel(newAxisValueX);
+            }
+
+            if (shared.chart().getTitleField().getText().equals(Lang.get("report.settings.chart.default_title"))
+                    && newAxisValueX != null && newAxisValueY != null) {
+                shared.chart().getTitleField()
+                        .setText(Lang.get("report.settings.chart.generated_title", newAxisValueX, newAxisValueY));
+            }
+        });
+
+        groupColumn.addItemListener(e -> {
+            String newAxisValueX = null;
+            String newAxisValueY = null;
+            DataTable table = getTable();
+            if (table != null) {
+                newAxisValueX = table.getColumnName(getValueColumn());
+                newAxisValueY = table.getColumnName(getGroupColumn());
+            }
+
+            if (shared.axis().isYVisible()
+                    && shared.axis().getYLabel().equals(Lang.get("report.settings.chart.default_labely"))
+                    && newAxisValueY != null) {
+                shared.axis().setYLabel(newAxisValueY);
+            }
+
+            if (shared.chart().getTitleField().getText().equals(Lang.get("report.settings.chart.default_title"))
+                    && newAxisValueX != null && newAxisValueY != null) {
+                shared.chart().getTitleField()
+                        .setText(Lang.get("report.settings.chart.generated_title", newAxisValueX, newAxisValueY));
+            }
+        });
     }
 
     private static interface ColumnFilter {

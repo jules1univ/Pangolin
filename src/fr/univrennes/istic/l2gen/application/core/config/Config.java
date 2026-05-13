@@ -21,6 +21,11 @@ public final class Config {
         return new FlatSVGIcon(newPath, 14, 14);
     }
 
+    public static FlatSVGIcon getIcon(String path, float scale) {
+        String newPath = path.replace(".svg", Config.DARK_MODE ? "_light.svg" : "_dark.svg");
+        return new FlatSVGIcon(newPath, (int) (14 * scale), (int) (14 * scale));
+    }
+
     public static boolean getBoolean(String key, boolean defaultValue) {
         return prefs.getBoolean(key, defaultValue);
     }

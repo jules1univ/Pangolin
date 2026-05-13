@@ -30,6 +30,7 @@ public final class ChartSettingsPanel extends SettingSectionPanel implements IRe
                 build();
 
                 shared = new SharedChartSettings(this, axisSettings, legendSettings, colorSettings, dataSettings);
+                dataSettings.setShared(shared);
         }
 
         private void build() {
