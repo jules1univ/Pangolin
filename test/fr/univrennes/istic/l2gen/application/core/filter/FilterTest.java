@@ -126,7 +126,6 @@ public class FilterTest {
         Assert.assertEquals(2, filter.getConditions().size());
 
         FilterCondition first = filter.getConditions().get(0);
-        FilterCondition second = filter.getConditions().get(1);
 
         Assert.assertEquals(FilterOperator.GREATER_EQUAL, first.operator());
         Assert.assertEquals("5", first.value());
