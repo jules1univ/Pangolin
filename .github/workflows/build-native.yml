@@ -17,7 +17,7 @@ jobs:
           cache: 'maven'
 
       - name: Build shaded JAR
-        run: mvn -B package -DskipTests
+        run:  mvn -B clean package -DskipTests -U
 
       - name: Download JavaFX SDK for Linux
         run: |
@@ -66,7 +66,7 @@ jobs:
           cache: 'maven'
 
       - name: Build shaded JAR
-        run: mvn -B package -DskipTests
+        run:  mvn -B clean package -DskipTests -U
 
       - name: Download JavaFX SDK for macOS
         run: |
@@ -115,7 +115,7 @@ jobs:
           cache: 'maven'
 
       - name: Build shaded JAR
-        run: mvn -B package -DskipTests
+        run:  mvn -B clean package -DskipTests -U
 
       - name: Download JavaFX SDK for Windows
         shell: pwsh
