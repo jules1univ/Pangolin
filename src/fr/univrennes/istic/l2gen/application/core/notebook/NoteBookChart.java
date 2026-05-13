@@ -45,28 +45,30 @@ public final class NoteBookChart implements NoteBookValue {
     private static final int MAX_GROUP_LENGTH = 20;
     private static final String SVG_CHAR_ERROR = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"500\" height=\"100\"><rect width=\"100%\" height=\"100%\" fill=\"#f8d7da\"/><text x=\"50%\" y=\"50%\" dominant-baseline=\"middle\" text-anchor=\"middle\" fill=\"#721c24\" font-family=\"Arial, sans-serif\" font-size=\"14\">ERROR_MESSAGE</text></svg>";
 
-    private DataTable table;
-    private boolean includeFilters;
-    private boolean percentage;
+    private final DataTable table;
+    private final boolean includeFilters;
+    private final boolean percentage;
 
-    private DataViewType type;
-    private String title;
-    private boolean stacked;
+    private final DataViewType type;
+    private final String title;
 
-    private boolean showLegend;
-    private boolean horizontalLegend;
+    private final boolean showLegend;
+    private final boolean horizontalLegend;
 
-    private int tickCount;
-    private DataAxisViewScaleType scale;
+    private final boolean stacked;
+    private final int gridLevel;
 
-    private boolean showXAxis;
-    private String xAxisLabel;
-    private boolean showYAxis;
-    private String yAxisLabel;
+    private final int tickCount;
+    private final DataAxisViewScaleType scale;
 
-    private Optional<Integer> biggerGroupColumn;
-    private int groupColumn;
-    private int valueColumn;
+    private final boolean showXAxis;
+    private final String xAxisLabel;
+    private final boolean showYAxis;
+    private final String yAxisLabel;
+
+    private final Optional<Integer> biggerGroupColumn;
+    private final int groupColumn;
+    private final int valueColumn;
 
     private List<Color> colors;
     private List<String> labels;
@@ -76,11 +78,12 @@ public final class NoteBookChart implements NoteBookValue {
     public NoteBookChart(
             DataViewType type,
             String title,
-            boolean stacked,
 
             boolean showLegend,
             boolean horizontalLegend,
 
+            boolean stacked,
+            int gridLevel,
             int tickCount,
             DataAxisViewScaleType scale,
 
@@ -101,12 +104,13 @@ public final class NoteBookChart implements NoteBookValue {
 
         this.type = type;
         this.title = title;
-        this.stacked = stacked;
 
         this.showLegend = showLegend;
         this.horizontalLegend = horizontalLegend;
         this.colors = colors;
 
+        this.stacked = stacked;
+        this.gridLevel = gridLevel;
         this.tickCount = tickCount;
         this.scale = scale;
 
@@ -149,10 +153,11 @@ public final class NoteBookChart implements NoteBookValue {
             case PIE -> new PieDataGroupView(dataGroup, new Point(), 50, 200, horizontalLegend);
             case BAR -> new BarDataGroupView(dataGroup, new Point(), 50, 20, 400, horizontalLegend);
             case COLUMNS -> new ColumnsDataGroupView(dataGroup, new Point(), 50, 20, 400, horizontalLegend);
-            case SCATTER -> new ScatterDataGroupView(dataGroup, new Point(), 50, 20, 400, 5, horizontalLegend);
-            case LINE -> new LineDataGroupView(dataGroup, new Point(), 50, 20, 400, 5, horizontalLegend);
+            case SCATTER -> new ScatterDataGroupView(dataGroup, new Point(), 50, 20, 400, 5, stacked, horizontalLegend);
+            case LINE -> new LineDataGroupView(dataGroup, new Point(), 50, 20, 400, 5, stacked, horizontalLegend);
             case AREA -> new AreaDataGroupView(dataGroup, new Point(), 50, 20, 400, 5, stacked, horizontalLegend);
-            case SPIDER -> new SpiderDataGroupView(dataGroup, new Point(), 50, 200, horizontalLegend);
+            case SPIDER ->
+                new SpiderDataGroupView(dataGroup, new Point(), 50, 200, 4, gridLevel, stacked, horizontalLegend);
             default -> throw new Exception("Unsupported chart type: " + type);
         };
 
@@ -396,6 +401,10 @@ public final class NoteBookChart implements NoteBookValue {
 
     public boolean isStacked() {
         return stacked;
+    }
+
+    public int getGridLevel() {
+        return gridLevel;
     }
 
     public boolean isLegendVisible() {

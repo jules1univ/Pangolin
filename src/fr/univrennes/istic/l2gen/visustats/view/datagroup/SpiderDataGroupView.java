@@ -20,28 +20,35 @@ public class SpiderDataGroupView extends AbstractDataGroupView {
     @SVGField("data-grid-levels")
     private int gridLevels;
 
+    @SVGField("data-stacked")
+    private boolean stacked;
+
     public SpiderDataGroupView(DataGroup data, Point center, double spacing, double radius,
             boolean horizontalLegend) {
-        this(data, center, spacing, radius, 4, 4, horizontalLegend);
+        this(data, center, spacing, radius, 4, 4, true, horizontalLegend);
     }
 
     public SpiderDataGroupView(DataGroup data, Point center, double spacing, double radius, double pointRadius,
             boolean horizontalLegend) {
-        this(data, center, spacing, radius, pointRadius, 4, horizontalLegend);
+        this(data, center, spacing, radius, pointRadius, 4, true, horizontalLegend);
     }
 
     public SpiderDataGroupView(DataGroup data, Point center, double spacing, double radius, double pointRadius,
-            int gridLevels, boolean horizontalLegend) {
+            int gridLevels, boolean stacked, boolean horizontalLegend) {
         super(data, center, spacing, horizontalLegend);
         this.radius = radius;
         this.pointRadius = pointRadius;
         this.gridLevels = Math.max(1, gridLevels);
+        this.stacked = stacked;
         this.update();
     }
 
     @Override
     protected double getTotalElementsWidth() {
-        return this.getElementWidth();
+        if (this.stacked) {
+            return this.getElementWidth();
+        }
+        return super.getTotalElementsWidth();
     }
 
     @Override
@@ -56,7 +63,8 @@ public class SpiderDataGroupView extends AbstractDataGroupView {
 
     @Override
     protected IDataSetView createElement(Point position) {
-        return new SpiderDataSetView((Point) this.center.copy(), this.radius, this.pointRadius, this.gridLevels);
+        Point elementCenter = this.stacked ? (Point) this.center.copy() : position;
+        return new SpiderDataSetView(elementCenter, this.radius, this.pointRadius, this.gridLevels);
     }
 
     @Override

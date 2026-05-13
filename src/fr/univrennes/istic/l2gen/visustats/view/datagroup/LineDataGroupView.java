@@ -21,17 +21,26 @@ public class LineDataGroupView extends AbstractDataGroupView {
     @SVGField("data-point-radius")
     private double pointRadius;
 
+    @SVGField("data-stacked")
+    private boolean stacked;
+
     public LineDataGroupView(DataGroup data, Point center, double spacing, double pointSpacing, double maxHeight,
             boolean horizontalLegend) {
-        this(data, center, spacing, pointSpacing, maxHeight, 4, horizontalLegend);
+        this(data, center, spacing, pointSpacing, maxHeight, 4, false, horizontalLegend);
     }
 
     public LineDataGroupView(DataGroup data, Point center, double spacing, double pointSpacing, double maxHeight,
             double pointRadius, boolean horizontalLegend) {
+        this(data, center, spacing, pointSpacing, maxHeight, pointRadius, false, horizontalLegend);
+    }
+
+    public LineDataGroupView(DataGroup data, Point center, double spacing, double pointSpacing, double maxHeight,
+            double pointRadius, boolean stacked, boolean horizontalLegend) {
         super(data, center, spacing, horizontalLegend);
         this.pointSpacing = pointSpacing;
         this.maxHeight = maxHeight;
         this.pointRadius = pointRadius;
+        this.stacked = stacked;
         this.update();
     }
 
@@ -51,8 +60,17 @@ public class LineDataGroupView extends AbstractDataGroupView {
     }
 
     @Override
+    protected double getTotalElementsWidth() {
+        if (this.stacked) {
+            return this.getElementWidth();
+        }
+        return super.getTotalElementsWidth();
+    }
+
+    @Override
     protected IDataSetView createElement(Point position) {
-        return new LineDataSetView(position, this.pointSpacing, this.maxHeight, this.pointRadius);
+        Point elementCenter = this.stacked ? (Point) this.center.copy() : position;
+        return new LineDataSetView(elementCenter, this.pointSpacing, this.maxHeight, this.pointRadius);
     }
 
     @Override

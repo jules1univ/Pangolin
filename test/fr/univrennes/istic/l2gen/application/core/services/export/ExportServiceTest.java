@@ -86,6 +86,7 @@ public class ExportServiceTest {
                 false,
                 true,
                 false,
+                3,
                 4,
                 DataAxisViewScaleType.LINEAR,
                 true,

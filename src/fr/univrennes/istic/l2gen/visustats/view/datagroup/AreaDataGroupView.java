@@ -34,11 +34,6 @@ public class AreaDataGroupView extends AbstractDataGroupView {
         this.update();
     }
 
-    public final void setStacked(boolean stacked) {
-        this.stacked = stacked;
-        this.update();
-    }
-
     @Override
     protected double getTotalElementsHeight() {
         return this.maxHeight;

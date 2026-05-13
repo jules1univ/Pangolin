@@ -11,6 +11,7 @@ import fr.univrennes.istic.l2gen.application.core.table.DataTable;
 import fr.univrennes.istic.l2gen.application.gui.GUIController;
 import fr.univrennes.istic.l2gen.application.gui.panels.report.views.settings.SettingRowPanel;
 import fr.univrennes.istic.l2gen.application.gui.panels.report.views.settings.SettingSectionPanel;
+import fr.univrennes.istic.l2gen.application.gui.panels.report.views.settings.SettingSeparatorRow;
 import fr.univrennes.istic.l2gen.application.gui.panels.report.views.settings.pages.IReportSettingPanel;
 import fr.univrennes.istic.l2gen.visustats.view.DataViewType;
 
@@ -18,7 +19,9 @@ public final class ChartSettingsPanel extends SettingSectionPanel implements IRe
 
         private JComboBox<String> chartTypeCombo;
         private JTextField titleField;
+
         private JCheckBox stackedCheckBox;
+        private JComboBox<String> gridLevelCombo;
 
         private final SharedChartSettings shared;
 
@@ -50,9 +53,15 @@ public final class ChartSettingsPanel extends SettingSectionPanel implements IRe
                                 case PIE -> {
                                         shared.axis().setVisible(false);
                                 }
-                                case AREA -> {
+                                case AREA, LINE, SCATTER -> {
                                         shared.axis().setVisible(true);
-                                        stackedCheckBox.setEnabled(true);
+                                        stackedCheckBox.setEnabled(shared.data().getBiggerGroupColumn().isPresent());
+                                }
+                                case SPIDER -> {
+                                        shared.axis().setVisible(true);
+                                        stackedCheckBox.setEnabled(shared.data().getBiggerGroupColumn().isPresent());
+
+                                        gridLevelCombo.setEnabled(true);
                                 }
                                 default -> {
                                         shared.axis().setVisible(true);
@@ -64,9 +73,22 @@ public final class ChartSettingsPanel extends SettingSectionPanel implements IRe
                 titleField = new JTextField(Lang.get("report.settings.chart.default_title"));
                 addRow(new SettingRowPanel(Lang.get("report.settings.chart.title"), titleField));
 
+                addRow(new SettingSeparatorRow(Lang.get("report.settings.chart.advanced")));
+
                 stackedCheckBox = new JCheckBox();
                 stackedCheckBox.setEnabled(false);
                 addRow(new SettingRowPanel(Lang.get("report.settings.chart.stacked"), stackedCheckBox));
+
+                gridLevelCombo = new JComboBox<>(new String[] {
+                                "1",
+                                "2",
+                                "3",
+                                "4",
+                                "5",
+                });
+                gridLevelCombo.setSelectedIndex(3);
+                gridLevelCombo.setEnabled(false);
+                addRow(new SettingRowPanel(Lang.get("report.settings.chart.spider_grid_level"), gridLevelCombo));
         }
 
         public JTextField getTitleField() {
@@ -75,14 +97,15 @@ public final class ChartSettingsPanel extends SettingSectionPanel implements IRe
 
         @Override
         public NoteBookValue createNoteBook() {
-                System.out.println(shared.data().getTable().getPath());
                 NoteBookChart chart = new NoteBookChart(
                                 DataViewType.values()[chartTypeCombo.getSelectedIndex()],
                                 titleField.getText(),
-                                stackedCheckBox.isSelected(),
 
                                 shared.legend().isLegendVisible(),
                                 shared.legend().isLegendHorizontal(),
+
+                                stackedCheckBox.isSelected(),
+                                gridLevelCombo.getSelectedIndex() + 1,
 
                                 shared.axis().getTickCount(),
                                 shared.axis().getScale(),
@@ -112,7 +135,9 @@ public final class ChartSettingsPanel extends SettingSectionPanel implements IRe
                 }
                 chartTypeCombo.setSelectedIndex(chart.getType().ordinal());
                 titleField.setText(chart.getTitle());
+
                 stackedCheckBox.setSelected(chart.isStacked());
+                gridLevelCombo.setSelectedIndex(chart.getGridLevel() - 1);
 
                 shared.legend().setLegendVisible(chart.isLegendVisible());
                 shared.legend().setLegendHorizontal(chart.isLegendHorizontal());
