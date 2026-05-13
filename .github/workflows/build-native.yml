@@ -31,7 +31,7 @@ jobs:
             --main-jar Pangol1-1.0-SNAPSHOT.jar \
             --main-class fr.univrennes.istic.l2gen.application.Pangol1 \
             --name Pangol1 \
-            --app-version ${{ github.event.release.tag_name }} \
+            --app-version 0.0.1 \
             --icon src/resources/icons/logo.png \
             --type deb \
             --dest dist \
@@ -80,7 +80,7 @@ jobs:
             --main-jar Pangol1-1.0-SNAPSHOT.jar \
             --main-class fr.univrennes.istic.l2gen.application.Pangol1 \
             --name Pangol1 \
-            --app-version ${{ github.event.release.tag_name }} \
+            --app-version 0.0.1 \
             --icon src/resources/icons/logo.png \
             --type dmg \
             --dest dist \
@@ -131,8 +131,8 @@ jobs:
             --main-jar Pangol1-1.0-SNAPSHOT.jar `
             --main-class fr.univrennes.istic.l2gen.application.Pangol1 `
             --name Pangol1 `
-            --app-version ${{ github.event.release.tag_name }} `
-            --icon src/resources/icons/logo.png `
+            --app-version 0.0.1 `
+            --icon src/resources/icons/logo.ico `
             --type msi `
             --dest dist `
             --module-path javafx-sdk/javafx-sdk-21.0.3/lib `
