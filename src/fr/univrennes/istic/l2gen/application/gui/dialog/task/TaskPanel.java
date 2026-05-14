@@ -29,7 +29,7 @@ import fr.univrennes.istic.l2gen.application.core.config.Lang;
 
 public final class TaskPanel extends JPanel {
 
-    private static final int DONE_REMOVAL_DELAY_MS = 5000;
+    private static final int DONE_REMOVAL_DELAY_MS = 3000;
     private static final int FIXED_WIDTH = 320;
     private static final int ROW_HEIGHT = 46;
     private static final int MAX_VISIBLE_ROWS = 6;
@@ -110,7 +110,8 @@ public final class TaskPanel extends JPanel {
 
     private void scheduleRemovalForDoneEntries(List<TaskEntry> entries) {
         for (TaskEntry entry : entries) {
-            if (entry.status() == TaskStatus.SUCCESS && !scheduledForRemoval.contains(entry.id())) {
+            if ((entry.status() == TaskStatus.SUCCESS || entry.status() == TaskStatus.FAILED)
+                    && !scheduledForRemoval.contains(entry.id())) {
                 scheduledForRemoval.add(entry.id());
                 String taskId = entry.id();
                 Timer removalTimer = new Timer(DONE_REMOVAL_DELAY_MS, event -> onTaskRemove.accept(taskId));

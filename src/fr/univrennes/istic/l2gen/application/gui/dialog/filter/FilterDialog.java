@@ -11,6 +11,7 @@ import fr.univrennes.istic.l2gen.application.core.filter.Filter;
 import fr.univrennes.istic.l2gen.application.core.filter.FilterCondition;
 import fr.univrennes.istic.l2gen.application.core.filter.FilterLogic;
 import fr.univrennes.istic.l2gen.application.core.filter.FilterOperator;
+import fr.univrennes.istic.l2gen.application.core.filter.FilterSort;
 import fr.univrennes.istic.l2gen.application.core.services.statistic.DateStatisticService;
 import fr.univrennes.istic.l2gen.application.core.services.statistic.NumericStatisticService;
 import fr.univrennes.istic.l2gen.application.core.services.statistic.StringStatisticService;
@@ -48,6 +49,7 @@ public final class FilterDialog extends JDialog {
     private JComboBox<String> sortDirectionComboBox;
     private JComboBox<String> logicOperatorComboBox;
     private JPanel conditionOptionsPanel;
+    private JButton addFilterButton;
 
     private JPanel searchInputsPanel;
     private JTextField searchTextField;
@@ -86,6 +88,8 @@ public final class FilterDialog extends JDialog {
         setMinimumSize(new Dimension(DialogBase.WIDTH, DialogBase.HEIGHT));
         setLocationRelativeTo(parent);
         setResizable(true);
+
+        loadExistingFilters();
     }
 
     private void build() {
@@ -97,6 +101,73 @@ public final class FilterDialog extends JDialog {
         root.add(buildButtonBar(), BorderLayout.SOUTH);
 
         setContentPane(root);
+    }
+
+    private void loadExistingFilters() {
+        List<Filter> existingFilters = table.getFilters();
+        for (Filter filter : existingFilters) {
+            int columnIndex = filter.getColumnIndex();
+            String columnName = columnNames.get(columnIndex);
+            String description = buildFilterDescription(filter, columnName);
+            result.add(filter);
+            addConditionRow(description, filter);
+        }
+    }
+
+    private String buildFilterDescription(Filter filter, String columnName) {
+        FilterSort sort = filter.getSort();
+        if (sort != FilterSort.NONE) {
+            boolean ascending = sort == FilterSort.ASCENDING;
+            return "ORDER BY " + columnName + (ascending ? " ASC" : " DESC");
+        }
+
+        List<FilterCondition> conditions = filter.getConditions();
+        if (conditions == null || conditions.isEmpty()) {
+            return columnName + " (custom filter)";
+        }
+
+        if (conditions.size() == 1) {
+            FilterCondition condition = conditions.get(0);
+            FilterOperator op = condition.operator();
+            String value = condition.value();
+
+            return switch (op) {
+                case IS_NULL -> columnName + " IS NULL";
+                case NOT_NULL -> columnName + " IS NOT NULL";
+                case EQUAL -> columnName + " = " + value;
+                case LIKE -> columnName + " LIKE \"" + value + "\"";
+                case GREATER -> columnName + " > " + value;
+                case LESS -> columnName + " < " + value;
+                case GREATER_EQUAL -> columnName + " >= " + value;
+                case LESS_EQUAL -> columnName + " <= " + value;
+                default -> columnName + " " + op + " " + value;
+            };
+        }
+
+        StringBuilder desc = new StringBuilder();
+        for (int i = 0; i < conditions.size(); i++) {
+            FilterCondition condition = conditions.get(i);
+            FilterOperator op = condition.operator();
+            String value = condition.value();
+
+            String condDesc = switch (op) {
+                case IS_NULL -> columnName + " IS NULL";
+                case NOT_NULL -> columnName + " IS NOT NULL";
+                case EQUAL -> columnName + " = " + value;
+                case LIKE -> columnName + " LIKE \"" + value + "\"";
+                case GREATER -> columnName + " > " + value;
+                case LESS -> columnName + " < " + value;
+                case GREATER_EQUAL -> columnName + " >= " + value;
+                case LESS_EQUAL -> columnName + " <= " + value;
+                default -> columnName + " " + op + " " + value;
+            };
+
+            desc.append(condDesc);
+            if (i < conditions.size() - 1) {
+                desc.append(" ").append(filter.getOperator().name()).append(" ");
+            }
+        }
+        return desc.toString();
     }
 
     private JPanel buildFilterConfigPanel() {
@@ -155,10 +226,9 @@ public final class FilterDialog extends JDialog {
 
         filterTypeComboBox.addActionListener(event -> refreshConditionPanel());
         columnComboBox.addActionListener(event -> refreshConditionPanel());
-        refreshConditionPanel();
 
         JPanel addButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 4));
-        JButton addFilterButton = new JButton(Config.getIcon("icons/add.svg"));
+        addFilterButton = new JButton(Config.getIcon("icons/add.svg"));
         addFilterButton.addActionListener(event -> addCurrentFilter());
         addButtonPanel.add(addFilterButton);
 
@@ -169,6 +239,8 @@ public final class FilterDialog extends JDialog {
         fullRowConstraints.fill = GridBagConstraints.HORIZONTAL;
         fullRowConstraints.insets = new Insets(4, 0, 0, 0);
         panel.add(addButtonPanel, fullRowConstraints);
+
+        refreshConditionPanel();
 
         return panel;
     }
@@ -368,6 +440,7 @@ public final class FilterDialog extends JDialog {
         SpinnerNumberModel model = (SpinnerNumberModel) spinner.getModel();
         Double boundedMin = min;
         Double boundedMax = max;
+
         if (columnType == DataType.INTEGER) {
             boundedMin = min != null ? Math.ceil(min) : null;
             boundedMax = max != null ? Math.floor(max) : null;
@@ -378,15 +451,18 @@ public final class FilterDialog extends JDialog {
             }
         }
 
-        double clampedValue = getNumericValueForBounds(model, boundedMin, boundedMax, resetToMin);
-        if (columnType == DataType.INTEGER) {
-            clampedValue = Math.rint(clampedValue);
-            clampedValue = clampDouble(clampedValue, boundedMin, boundedMax);
-        }
+        double currentValue = getNumericValueForBounds(model, boundedMin, boundedMax, resetToMin);
 
-        Number stepSize = columnType == DataType.INTEGER ? 1.0 : model.getStepSize();
-        spinner.setModel(new SpinnerNumberModel(clampedValue, boundedMin, boundedMax, stepSize));
-        configureNumericEditor(spinner, columnType == DataType.INTEGER ? "0" : "0.###", Double.class);
+        if (columnType == DataType.INTEGER) {
+            currentValue = clampDouble(Math.rint(currentValue), boundedMin, boundedMax);
+            spinner.setModel(
+                    new SpinnerNumberModel(currentValue, boundedMin.doubleValue(), boundedMax.doubleValue(), 1.0));
+            configureNumericEditor(spinner, "0", Integer.class);
+        } else {
+            spinner.setModel(new SpinnerNumberModel(currentValue, boundedMin.doubleValue(), boundedMax.doubleValue(),
+                    model.getStepSize()));
+            configureNumericEditor(spinner, "0.###", Double.class);
+        }
     }
 
     private double getNumericValueForBounds(SpinnerNumberModel model, Double min, Double max, boolean resetToMin) {
@@ -459,11 +535,30 @@ public final class FilterDialog extends JDialog {
         lastSelectedColumnIndex = columnIndex;
 
         DataType columnType = getSelectedColumnType();
-        refreshInputBounds(columnType, columnChanged);
-        showCard(searchInputsPanel, getSearchCard(columnType));
-        showCard(rangeInputsPanel, getRangeCard(columnType));
-        showCard(topNInputsPanel, getNCard(columnType));
-        showCard(bottomNInputsPanel, getNCard(columnType));
+        boolean isEmptyColumn = columnType == DataType.EMPTY;
+
+        filterTypeComboBox.setEnabled(!isEmptyColumn);
+        logicOperatorComboBox.setEnabled(!isEmptyColumn && selectedType != FilterType.SORT);
+        conditionOptionsPanel.setEnabled(!isEmptyColumn);
+        addFilterButton.setEnabled(!isEmptyColumn);
+        setChildrenEnabled(conditionOptionsPanel, !isEmptyColumn);
+
+        if (!isEmptyColumn) {
+            refreshInputBounds(columnType, columnChanged);
+            showCard(searchInputsPanel, getSearchCard(columnType));
+            showCard(rangeInputsPanel, getRangeCard(columnType));
+            showCard(topNInputsPanel, getNCard(columnType));
+            showCard(bottomNInputsPanel, getNCard(columnType));
+        }
+    }
+
+    private void setChildrenEnabled(Container container, boolean enabled) {
+        for (Component component : container.getComponents()) {
+            component.setEnabled(enabled);
+            if (component instanceof Container childContainer) {
+                setChildrenEnabled(childContainer, enabled);
+            }
+        }
     }
 
     private void showCard(JPanel panel, String cardName) {
@@ -488,7 +583,7 @@ public final class FilterDialog extends JDialog {
             case INTEGER, DOUBLE -> CARD_NUMERIC;
             case DATE -> CARD_DATE;
             case BOOLEAN -> CARD_BOOLEAN;
-            case EMPTY -> CARD_STRING;
+            case EMPTY -> CARD_UNSUPPORTED;
             case STRING -> {
                 boolean hasCategories = StringStatisticService.hasCategories(table,
                         columnComboBox.getSelectedIndex());
@@ -496,7 +591,6 @@ public final class FilterDialog extends JDialog {
                     List<String> categories = StringStatisticService.getCategories(table,
                             columnComboBox.getSelectedIndex());
                     searchSelectComboBox.setModel(new DefaultComboBoxModel<>(categories.toArray(new String[0])));
-
                     yield CARD_CATEGORY;
                 } else {
                     yield CARD_STRING;
@@ -507,19 +601,19 @@ public final class FilterDialog extends JDialog {
 
     private String getRangeCard(DataType columnType) {
         return switch (columnType) {
-            case STRING, EMPTY -> CARD_STRING;
+            case STRING -> CARD_STRING;
             case INTEGER, DOUBLE -> CARD_NUMERIC;
             case DATE -> CARD_DATE;
-            case BOOLEAN -> CARD_UNSUPPORTED;
+            case BOOLEAN, EMPTY -> CARD_UNSUPPORTED;
         };
     }
 
     private String getNCard(DataType columnType) {
         return switch (columnType) {
-            case STRING, EMPTY -> CARD_STRING;
+            case STRING -> CARD_STRING;
             case INTEGER, DOUBLE -> CARD_NUMERIC;
             case DATE -> CARD_DATE;
-            case BOOLEAN -> CARD_UNSUPPORTED;
+            case BOOLEAN, EMPTY -> CARD_UNSUPPORTED;
         };
     }
 
@@ -564,8 +658,13 @@ public final class FilterDialog extends JDialog {
         DataType selectedColumnType = getSelectedColumnType();
         FilterLogic selectedLogic = logicOperatorComboBox.getSelectedIndex() == 0 ? FilterLogic.AND : FilterLogic.OR;
 
-        if (selectedType == null)
+        if (selectedType == null) {
             return;
+        }
+
+        if (selectedColumnType == DataType.EMPTY) {
+            return;
+        }
 
         Filter filter = null;
         String description = null;
@@ -590,7 +689,7 @@ public final class FilterDialog extends JDialog {
                             filter.add(new FilterCondition(FilterOperator.EQUAL, String.valueOf(value)));
                             description = selectedColumnName + " = " + value;
                         }
-                        case STRING, EMPTY -> {
+                        case STRING -> {
                             if (searchSelectComboBox.getItemCount() > 0) {
                                 String category = (String) searchSelectComboBox.getSelectedItem();
                                 filter = Filter.equals(selectedColumnIndex, category);
@@ -605,15 +704,21 @@ public final class FilterDialog extends JDialog {
                                 description = selectedColumnName + " LIKE \"" + searchTerm + "\"";
                             }
                         }
+                        case EMPTY -> {
+                            return;
+                        }
                     }
                 }
                 case RANGE -> {
                     switch (selectedColumnType) {
-                        case STRING, EMPTY -> {
+                        case STRING -> {
                             int minLength = readIntegerSpinner(rangeLengthMinSpinner);
                             int maxLength = readIntegerSpinner(rangeLengthMaxSpinner);
-                            maxLength = Math.max(maxLength, minLength);
-                            minLength = Math.min(minLength, maxLength);
+                            if (minLength > maxLength) {
+                                int temp = minLength;
+                                minLength = maxLength;
+                                maxLength = temp;
+                            }
                             filter = Filter.byRange(selectedColumnIndex, minLength, maxLength);
                             description = "LENGTH(" + selectedColumnName + ") BETWEEN " + minLength + " AND "
                                     + maxLength;
@@ -621,8 +726,11 @@ public final class FilterDialog extends JDialog {
                         case INTEGER, DOUBLE -> {
                             double minValue = readDoubleSpinner(rangeNumericMinSpinner);
                             double maxValue = readDoubleSpinner(rangeNumericMaxSpinner);
-                            maxValue = Math.max(maxValue, minValue);
-                            minValue = Math.min(minValue, maxValue);
+                            if (minValue > maxValue) {
+                                double temp = minValue;
+                                minValue = maxValue;
+                                maxValue = temp;
+                            }
                             filter = Filter.byRange(selectedColumnIndex, minValue, maxValue);
                             description = selectedColumnName + " BETWEEN " + minValue + " AND " + maxValue;
                         }
@@ -637,14 +745,14 @@ public final class FilterDialog extends JDialog {
                             filter = Filter.byRange(selectedColumnIndex, minDate, maxDate);
                             description = selectedColumnName + " BETWEEN " + minDate + " AND " + maxDate;
                         }
-                        case BOOLEAN -> {
+                        case BOOLEAN, EMPTY -> {
                             return;
                         }
                     }
                 }
                 case TOP_N -> {
                     switch (selectedColumnType) {
-                        case STRING, EMPTY -> {
+                        case STRING -> {
                             int length = readIntegerSpinner(topNLengthSpinner);
                             if (length <= 0) {
                                 showValidationError(Lang.get("filter.validation.invalid_number"));
@@ -663,14 +771,14 @@ public final class FilterDialog extends JDialog {
                             filter = Filter.topN(selectedColumnIndex, value);
                             description = selectedColumnName + " > " + value;
                         }
-                        case BOOLEAN -> {
+                        case BOOLEAN, EMPTY -> {
                             return;
                         }
                     }
                 }
                 case BOTTOM_N -> {
                     switch (selectedColumnType) {
-                        case STRING, EMPTY -> {
+                        case STRING -> {
                             int length = readIntegerSpinner(bottomNLengthSpinner);
                             if (length <= 0) {
                                 showValidationError(Lang.get("filter.validation.invalid_number"));
@@ -689,7 +797,7 @@ public final class FilterDialog extends JDialog {
                             filter = Filter.bottomN(selectedColumnIndex, value);
                             description = selectedColumnName + " < " + value;
                         }
-                        case BOOLEAN -> {
+                        case BOOLEAN, EMPTY -> {
                             return;
                         }
                     }
@@ -713,8 +821,9 @@ public final class FilterDialog extends JDialog {
             return;
         }
 
-        if (filter == null)
+        if (filter == null) {
             return;
+        }
 
         if (selectedType != FilterType.SORT) {
             filter.setOperator(selectedLogic);
@@ -750,6 +859,7 @@ public final class FilterDialog extends JDialog {
     }
 
     private double readDoubleSpinner(JSpinner spinner) throws ParseException {
+        spinner.commitEdit();
         JSpinner.NumberEditor editor = (JSpinner.NumberEditor) spinner.getEditor();
         String text = editor.getTextField().getText();
         Number parsed = editor.getFormat().parse(text);
@@ -769,6 +879,7 @@ public final class FilterDialog extends JDialog {
     }
 
     private Timestamp readTimestampSpinner(JSpinner spinner) throws ParseException {
+        spinner.commitEdit();
         JSpinner.DateEditor editor = (JSpinner.DateEditor) spinner.getEditor();
         String text = editor.getTextField().getText();
         Date parsed = editor.getFormat().parse(text);

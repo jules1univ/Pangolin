@@ -122,8 +122,8 @@ public final class TableDataView extends JPanel {
         }
         GUIController.getInstance().getTable().ifPresent(table -> {
             GUIController.getInstance().getMainView().getBottomBar().clearColumnStats();
-
             GUIController.getInstance().enableLoading();
+
             new SwingWorker<List<Optional<String>>, Void>() {
 
                 @Override
@@ -171,6 +171,9 @@ public final class TableDataView extends JPanel {
                         Optional<String> sum = get().get(4);
 
                         SwingUtilities.invokeLater(() -> {
+
+                            GUIController.getInstance().getMainView().getBottomBar().setTableInfo(table.getAlias(),
+                                    (int) table.getRowCount(), (int) table.getColumnCount());
                             GUIController.getInstance().getMainView().getBottomBar().setColumnStats(min, max, avg, med,
                                     sum);
                         });

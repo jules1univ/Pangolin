@@ -178,6 +178,17 @@ public final class BottomBar extends JPanel {
         });
     }
 
+    public void clearTasks() {
+        SwingUtilities.invokeLater(() -> {
+            taskEntries.clear();
+            refreshTaskCountLabel();
+            if (taskPanel != null) {
+                taskPanel.refresh(taskEntries);
+                repositionTaskPanel();
+            }
+        });
+    }
+
     public String addTask(String name, TaskStatus status) {
         String taskId = UUID.randomUUID().toString();
         SwingUtilities.invokeLater(() -> {
@@ -227,6 +238,10 @@ public final class BottomBar extends JPanel {
     private void removeTask(String taskId) {
         SwingUtilities.invokeLater(() -> {
             taskEntries.removeIf(entry -> entry.id().equals(taskId));
+            if (taskEntries.isEmpty()) {
+                loadingBar.setVisible(false);
+                dismissTaskPanel();
+            }
             refreshTaskCountLabel();
             if (taskPanel != null) {
                 taskPanel.refresh(taskEntries);

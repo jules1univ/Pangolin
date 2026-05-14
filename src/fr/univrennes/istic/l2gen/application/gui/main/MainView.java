@@ -3,15 +3,19 @@ package fr.univrennes.istic.l2gen.application.gui.main;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Taskbar;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.net.URL;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import fr.univrennes.istic.l2gen.application.core.config.Config;
 import fr.univrennes.istic.l2gen.application.core.config.Lang;
 import fr.univrennes.istic.l2gen.application.gui.panels.report.ReportPanel;
 import fr.univrennes.istic.l2gen.application.gui.panels.table.TablePanel;
@@ -68,6 +72,25 @@ public final class MainView extends JFrame {
 
         this.mainSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, reportPanel, tablePanel);
         add(mainSplit, BorderLayout.CENTER);
+
+        if (Config.getBoolean("settings.closing.confirm_on_close", false)) {
+
+            setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            addWindowListener(new WindowAdapter() {
+
+                @Override
+                public void windowClosing(WindowEvent var1) {
+
+                    int result = JOptionPane.showConfirmDialog(MainView.this,
+                            Lang.get("app.exit.confirmation"), Lang.get("app.exit.title"),
+                            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                    if (result == JOptionPane.YES_OPTION) {
+                        dispose();
+                    }
+                }
+
+            });
+        }
 
     }
 

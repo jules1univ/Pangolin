@@ -287,8 +287,8 @@ public final class GUIController extends CoreController {
     public void disableLoading() {
         if (loadingIndex > 0) {
             loadingIndex--;
-        }
-        if (loadingIndex == 0) {
+        } else {
+            mainView.getBottomBar().clearTasks();
             mainView.getBottomBar().setLoading(false);
         }
     }
