@@ -210,7 +210,24 @@ public final class MergeDialog extends JDialog {
         });
 
         JButton mergeButton = new JButton(Lang.get("merge.execute"));
-        mergeButton.addActionListener(event -> executeMerge());
+        mergeButton.addActionListener(event -> {
+            new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() {
+                    mergeButton.setEnabled(false);
+                    cancelButton.setEnabled(false);
+                    executeMerge();
+
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    mergeButton.setEnabled(true);
+                    cancelButton.setEnabled(true);
+                }
+            }.execute();
+        });
 
         buttonPanel.add(cancelButton);
         buttonPanel.add(mergeButton);

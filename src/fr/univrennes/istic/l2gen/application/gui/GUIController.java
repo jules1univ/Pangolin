@@ -523,15 +523,14 @@ public final class GUIController extends CoreController {
             return;
         }
 
-        SystemFileChooser dirChooser = new SystemFileChooser();
-        dirChooser.setMultiSelectionEnabled(false);
-        dirChooser.setFileSelectionMode(SystemFileChooser.DIRECTORIES_ONLY);
-        dirChooser.setDialogTitle(Lang.get("dialog.select_target_dir.title"));
-
-        if (dirChooser.showOpenDialog(mainView) != SystemFileChooser.APPROVE_OPTION) {
+        SystemFileChooser fileChooser = new SystemFileChooser();
+        fileChooser.setFileSelectionMode(SystemFileChooser.DIRECTORIES_ONLY);
+        fileChooser.setMultiSelectionEnabled(false);
+        fileChooser.setDialogTitle(Lang.get("dialog.select_target_dir.title"));
+        if (fileChooser.showOpenDialog(mainView) != SystemFileChooser.APPROVE_OPTION) {
             return;
         }
-        File targetDir = dirChooser.getSelectedFile();
+        File targetDir = fileChooser.getSelectedFile();
 
         enableLoading();
         setStatus(Lang.get("status.loading_url", input));

@@ -46,23 +46,24 @@ public final class DataTable {
 
     private final ArrayList<Filter> filters;
 
-    public static DataTable of(ResultSet resultSet, String alias) throws Exception {
+    public static DataTable of(ResultSet resultSet, File file, String alias) throws Exception {
         ResultSetMetaData metaData = resultSet.getMetaData();
         int columnCount = metaData.getColumnCount();
 
         List<String> columnNames = new ArrayList<>(columnCount);
         List<DataType> columnTypes = new ArrayList<>(columnCount);
 
-        while (resultSet.next()) {
-            for (int i = 1; i <= columnCount; i++) {
-                if (columnNames.size() < i) {
-                    columnNames.add(metaData.getColumnLabel(i));
-                    columnTypes.add(DataType.fromSQL(metaData.getColumnTypeName(i)));
-                }
-            }
+        for (int i = 1; i <= columnCount; i++) {
+            columnNames.add(metaData.getColumnLabel(i));
+            columnTypes.add(DataType.fromSQL(metaData.getColumnTypeName(i)));
         }
 
-        return new DataTable(null, alias, columnNames, columnTypes, 0, columnCount);
+        long rowCount = 0;
+        while (resultSet.next()) {
+            rowCount++;
+        }
+
+        return new DataTable(file, alias, columnNames, columnTypes, rowCount, columnCount);
     }
 
     public static DataTable of(File file) throws IOException {

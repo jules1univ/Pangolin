@@ -7,6 +7,7 @@ import fr.univrennes.istic.l2gen.application.core.table.DataTable;
 import fr.univrennes.istic.l2gen.application.Pangol1;
 import org.duckdb.DuckDBConnection;
 
+import java.io.File;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -23,21 +24,26 @@ public final class MergeService {
                 TaskStatus.PENDING);
 
         String query = buildQuery(leftTable, rightTable, config);
+        File resultFile = new File(rightTable.getPath().getParent(), config.getResultName() + ".parquet");
+        String absoluteFilePath = resultFile.getAbsolutePath().replace("\\", "/");
+        String copyQuery = String.format("COPY (%s) TO '%s' (FORMAT PARQUET, CODEC 'SNAPPY')", query, absoluteFilePath);
 
         try (DuckDBConnection connection = (DuckDBConnection) DriverManager.getConnection("jdbc:duckdb:");
                 Statement statement = connection.createStatement()) {
 
             Pangol1.getController().updateTaskStatus(taskId, TaskStatus.RUNNING);
 
-            ResultSet resultSet = statement.executeQuery(query);
-            DataTable result = DataTable.of(resultSet, config.getResultName());
+            statement.execute(copyQuery);
+
+            ResultSet resultSet = statement.executeQuery(String.format("SELECT * FROM '%s'", absoluteFilePath));
+            DataTable result = DataTable.of(resultSet, resultFile, config.getResultName());
 
             Pangol1.getController().updateTaskStatus(taskId, TaskStatus.SUCCESS);
             return result;
 
         } catch (Exception exception) {
             Pangol1.getController().updateTaskStatus(taskId, TaskStatus.FAILED);
-            Log.debug("Failed to execute merge query: " + query, exception);
+            Log.debug("Failed to execute merge query: " + copyQuery, exception);
             return null;
         }
     }
