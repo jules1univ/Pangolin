@@ -4,7 +4,7 @@ import fr.univrennes.istic.l2gen.application.core.CoreApp;
 import fr.univrennes.istic.l2gen.application.core.config.Config;
 import fr.univrennes.istic.l2gen.application.core.config.Lang;
 import fr.univrennes.istic.l2gen.application.core.config.Log;
-import fr.univrennes.istic.l2gen.application.core.services.TableService;
+import fr.univrennes.istic.l2gen.application.core.services.table.TableService;
 import fr.univrennes.istic.l2gen.application.gui.dialog.settings.pages.AppearanceSettingsPanel;
 import fr.univrennes.istic.l2gen.application.gui.main.MainView;
 import fr.univrennes.istic.l2gen.application.gui.main.SplashScreen;

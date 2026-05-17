@@ -27,7 +27,7 @@ import fr.univrennes.istic.l2gen.application.core.config.Config;
 import fr.univrennes.istic.l2gen.application.core.config.Lang;
 import fr.univrennes.istic.l2gen.application.core.config.Log;
 import fr.univrennes.istic.l2gen.application.core.services.FileService;
-import fr.univrennes.istic.l2gen.application.core.services.TableService;
+import fr.univrennes.istic.l2gen.application.core.services.table.TableService;
 import fr.univrennes.istic.l2gen.application.core.table.DataTable;
 import fr.univrennes.istic.l2gen.application.core.table.DataTableWorkerStatus;
 import fr.univrennes.istic.l2gen.application.core.filter.Filter;
@@ -369,6 +369,11 @@ public final class GUIController extends CoreController {
         currentTable.clearFilters();
         currentTable.addFilters(filters);
 
+        mainView.getBottomBar().clearColumnStats();
+        mainView.getBottomBar().setTableInfo(
+                currentTable.getAlias(),
+                (int) currentTable.getRowCount(),
+                (int) currentTable.getColumnCount());
         mainView.getTablePanel().refresh();
     }
 

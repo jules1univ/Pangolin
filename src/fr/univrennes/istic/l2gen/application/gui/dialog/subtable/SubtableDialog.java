@@ -32,7 +32,7 @@ import fr.univrennes.istic.l2gen.application.Pangol1;
 import fr.univrennes.istic.l2gen.application.core.TaskStatus;
 import fr.univrennes.istic.l2gen.application.core.config.Lang;
 import fr.univrennes.istic.l2gen.application.core.filter.FilterBuilder;
-import fr.univrennes.istic.l2gen.application.core.services.TableService;
+import fr.univrennes.istic.l2gen.application.core.services.table.TableService;
 import fr.univrennes.istic.l2gen.application.core.table.DataTable;
 import fr.univrennes.istic.l2gen.application.core.table.DataType;
 import fr.univrennes.istic.l2gen.application.gui.GUIController;

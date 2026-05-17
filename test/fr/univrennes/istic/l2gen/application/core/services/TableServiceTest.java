@@ -12,6 +12,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
 import org.junit.Before;
 import fr.univrennes.istic.l2gen.application.core.config.Config;
+import fr.univrennes.istic.l2gen.application.core.services.table.TableService;
 import fr.univrennes.istic.l2gen.application.core.table.DataTable;
 
 public class TableServiceTest {

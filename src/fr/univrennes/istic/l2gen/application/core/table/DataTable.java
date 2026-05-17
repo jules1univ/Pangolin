@@ -45,6 +45,25 @@ public final class DataTable {
 
     private final ArrayList<Filter> filters;
 
+    public static DataTable of(ResultSet resultSet, String alias) throws Exception {
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
+
+        List<String> columnNames = new ArrayList<>(columnCount);
+        List<DataType> columnTypes = new ArrayList<>(columnCount);
+
+        while (resultSet.next()) {
+            for (int i = 1; i <= columnCount; i++) {
+                if (columnNames.size() < i) {
+                    columnNames.add(metaData.getColumnLabel(i));
+                    columnTypes.add(DataType.fromSQL(metaData.getColumnTypeName(i)));
+                }
+            }
+        }
+
+        return new DataTable(null, alias, columnNames, columnTypes, 0, columnCount);
+    }
+
     public static DataTable of(File file) throws IOException {
         if (!file.canRead() || !file.isFile() || file.length() == 0
                 || !FileService.getExtension(file).equals("parquet")) {

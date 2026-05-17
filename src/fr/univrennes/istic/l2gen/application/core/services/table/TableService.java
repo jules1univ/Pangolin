@@ -1,4 +1,4 @@
-package fr.univrennes.istic.l2gen.application.core.services;
+package fr.univrennes.istic.l2gen.application.core.services.table;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,6 +33,7 @@ import fr.univrennes.istic.l2gen.application.core.TaskStatus;
 import fr.univrennes.istic.l2gen.application.core.config.Config;
 import fr.univrennes.istic.l2gen.application.core.config.Lang;
 import fr.univrennes.istic.l2gen.application.core.config.Log;
+import fr.univrennes.istic.l2gen.application.core.services.FileService;
 import fr.univrennes.istic.l2gen.application.core.table.DataTable;
 import fr.univrennes.istic.l2gen.application.core.table.DataType;
 

@@ -10,6 +10,7 @@ import javax.swing.UIManager;
 import fr.univrennes.istic.l2gen.application.core.config.Config;
 
 import fr.univrennes.istic.l2gen.application.core.config.Lang;
+import fr.univrennes.istic.l2gen.application.core.services.table.TableService;
 import fr.univrennes.istic.l2gen.application.gui.GUIController;
 import fr.univrennes.istic.l2gen.application.gui.panels.table.TablePanel;
 
@@ -113,6 +114,8 @@ public final class TableToolBar extends JToolBar {
                 hideEmptyColumnsButton.setVisible(!tableView.hasHiddenColumns());
                 clearFiltersButton.setVisible(
                                 tableView.getTableModel().getTable().map(t -> !t.getFilters().isEmpty()).orElse(false));
+
+                mergetableButton.setEnabled(TableService.get().size() > 1);
         }
 
         public JButton getFilterButton() {

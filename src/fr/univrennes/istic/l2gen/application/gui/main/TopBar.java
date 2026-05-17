@@ -13,7 +13,7 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
 import fr.univrennes.istic.l2gen.application.core.config.Lang;
-import fr.univrennes.istic.l2gen.application.core.services.TableService;
+import fr.univrennes.istic.l2gen.application.core.services.table.TableService;
 import fr.univrennes.istic.l2gen.application.core.table.DataTable;
 import fr.univrennes.istic.l2gen.application.gui.GUIController;
 import fr.univrennes.istic.l2gen.application.gui.dialog.settings.SettingsDialog;

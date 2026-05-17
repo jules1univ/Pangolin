@@ -212,9 +212,17 @@ public final class TableDataView extends JPanel {
         paginationBar.refresh();
         toolBar.refresh();
 
+        GUIController.getInstance().getTable()
+                .ifPresent(table -> GUIController.getInstance().getMainView().getBottomBar()
+                        .setTableInfo(table.getAlias(), (int) table.getRowCount(),
+                                (int) table.getColumnCount()));
+
         updateHeaderIcons();
+
         applyRowHeaderVisibility();
+
         adjustColumnWidths();
+
     }
 
     public String getColumnName(int viewIndex) {

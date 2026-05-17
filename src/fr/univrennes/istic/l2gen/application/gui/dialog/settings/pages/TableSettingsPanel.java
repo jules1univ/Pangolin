@@ -21,7 +21,10 @@ public final class TableSettingsPanel extends AbstractSettingsPanel {
         private final JCheckBox hideEmptyColumnsCheckBox;
         private final JCheckBox showColumnTypesCheckBox;
         private final JCheckBox autoResizeColumnsCheckBox;
+
         private final JCheckBox calculateStatisticsCheckBox;
+
+        private final JCheckBox saveFiltersWithTableCheckBox;
 
         public TableSettingsPanel() {
 
@@ -90,10 +93,21 @@ public final class TableSettingsPanel extends AbstractSettingsPanel {
                                 Lang.get("settings.table.columns.calculate_statistics"),
                                 calculateStatisticsCheckBox));
 
+                SettingsSectionPanel filterSection = new SettingsSectionPanel(
+                                Lang.get("settings.table.section.filters"));
+
+                saveFiltersWithTableCheckBox = new JCheckBox();
+                saveFiltersWithTableCheckBox.setSelected(
+                                Config.getBoolean("settings.table.filters.save_with_table", true));
+                filterSection.addRow(new SettingsRowPanel(
+                                Lang.get("settings.table.filters.save_with_table"),
+                                saveFiltersWithTableCheckBox));
+
                 addSection(modeSection);
                 addSection(displaySection);
                 addSection(columnsSection);
                 addSection(statsSection);
+                addSection(filterSection);
         }
 
         @Override
@@ -134,6 +148,10 @@ public final class TableSettingsPanel extends AbstractSettingsPanel {
                                 true) != calculateStatisticsCheckBox.isSelected()) {
                         changed = true;
                 }
+                if (Config.getBoolean("settings.table.filters.save_with_table",
+                                true) != saveFiltersWithTableCheckBox.isSelected()) {
+                        changed = true;
+                }
 
                 Config.put("settings.table.read_only", readOnlyCheckBox.isSelected());
                 Config.put("settings.table.manual_typing", manualTypingCheckBox.isSelected());
@@ -146,6 +164,7 @@ public final class TableSettingsPanel extends AbstractSettingsPanel {
                 Config.put("settings.table.columns.auto_resize", autoResizeColumnsCheckBox.isSelected());
                 Config.put("settings.table.columns.calculate_statistics",
                                 calculateStatisticsCheckBox.isSelected());
+                Config.put("settings.table.filters.save_with_table", saveFiltersWithTableCheckBox.isSelected());
 
                 return changed;
         }
