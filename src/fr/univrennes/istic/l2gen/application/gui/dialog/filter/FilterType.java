@@ -1,6 +1,6 @@
 package fr.univrennes.istic.l2gen.application.gui.dialog.filter;
 
-enum FilterType {
+public enum FilterType {
     SEARCH,
     RANGE,
     TOP_N,
