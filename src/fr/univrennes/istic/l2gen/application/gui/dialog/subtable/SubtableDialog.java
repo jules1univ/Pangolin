@@ -230,7 +230,7 @@ public final class SubtableDialog extends JDialog {
                 return;
             }
 
-            TableService.removeLoaded(outputFile);
+            TableService.remove(outputFile);
             if (!outputFile.delete()) {
                 GUIController.getInstance()
                         .onException(new java.io.IOException(

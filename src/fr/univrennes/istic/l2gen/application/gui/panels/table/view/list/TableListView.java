@@ -179,7 +179,7 @@ public final class TableListView extends JPanel {
         File newPath = new File(path.getParentFile(), newAlias + ".parquet");
         table.setAlias(newAlias);
         if (newPath.exists() && !path.exists()) {
-            TableService.updateLoadedPath(path, newPath, table);
+            TableService.update(path, newPath, table);
             TableService.removeRecent(path);
             TableService.addRecent(newPath);
             TableService.saveRecents();
@@ -215,7 +215,7 @@ public final class TableListView extends JPanel {
             return;
         }
 
-        TableService.removeLoaded(path);
+        TableService.remove(path);
         TableService.removeRecent(path);
         TableService.saveRecents();
         refresh();
@@ -242,7 +242,7 @@ public final class TableListView extends JPanel {
             }
         });
 
-        TableService.removeLoaded(path);
+        TableService.remove(path);
         TableService.removeRecent(path);
         TableService.saveRecents();
 

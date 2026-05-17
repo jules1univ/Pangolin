@@ -1,6 +1,5 @@
 package fr.univrennes.istic.l2gen.application.gui.panels.table.view.data;
 
-import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.JLabel;
@@ -19,7 +18,7 @@ public final class RowHeaderRenderer extends JLabel implements ListCellRenderer<
         setHorizontalAlignment(SwingConstants.CENTER);
         setBorder(UIManager.getBorder("TableHeader.cellBorder"));
 
-        setBackground(new Color(245, 245, 245));
+        setBackground(UIManager.getColor("TableHeader.background"));
         setForeground(this.tableRowHeader.tableView.getTableHeader().getForeground());
         setFont(this.tableRowHeader.tableView.getTableHeader().getFont());
     }

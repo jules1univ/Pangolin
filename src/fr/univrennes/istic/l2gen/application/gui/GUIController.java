@@ -151,7 +151,7 @@ public final class GUIController extends CoreController {
     @Override
     public void updateTask(String taskId, String name, TaskStatus status) {
         mainView.getBottomBar().updateTask(taskId, name, status);
-        if (status == TaskStatus.SUCCESS) {
+        if (status == TaskStatus.SUCCESS || status == TaskStatus.FAILED) {
             disableLoading();
         }
     }
@@ -159,7 +159,7 @@ public final class GUIController extends CoreController {
     @Override
     public void updateTaskStatus(String taskId, TaskStatus status) {
         mainView.getBottomBar().updateTaskStatus(taskId, status);
-        if (status == TaskStatus.SUCCESS) {
+        if (status == TaskStatus.SUCCESS || status == TaskStatus.FAILED) {
             disableLoading();
         }
     }
@@ -245,6 +245,16 @@ public final class GUIController extends CoreController {
                 List<DataTable> tables = defaultTableUri != null
                         ? TableService.load(defaultTableUri, targetDir)
                         : TableService.load(defaultTableFile, targetDir);
+
+                if (Config.getBoolean("settings.startup.reopen_tables", false)) {
+                    for (File recentFile : TableService.getRecentTables()) {
+                        if (recentFile.equals(defaultTableFile)) {
+                            continue;
+                        }
+                        TableService.get(recentFile);
+                    }
+                }
+
                 return tables.isEmpty() ? null : tables.get(0);
             }
 
@@ -285,9 +295,12 @@ public final class GUIController extends CoreController {
     }
 
     public void disableLoading() {
+
         if (loadingIndex > 0) {
             loadingIndex--;
-        } else {
+        }
+
+        if (loadingIndex == 0) {
             mainView.getBottomBar().clearTasks();
             mainView.getBottomBar().setLoading(false);
         }

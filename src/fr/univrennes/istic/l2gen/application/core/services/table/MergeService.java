@@ -38,6 +38,9 @@ public final class MergeService {
             ResultSet resultSet = statement.executeQuery(String.format("SELECT * FROM '%s'", absoluteFilePath));
             DataTable result = DataTable.of(resultSet, resultFile, config.getResultName());
 
+            TableService.add(result);
+            TableService.addRecent(resultFile);
+
             Pangol1.getController().updateTaskStatus(taskId, TaskStatus.SUCCESS);
             return result;
 
