@@ -41,13 +41,16 @@ public final class TableColumnContextMenu extends JPopupMenu {
         private final DataType columnType;
         private final TableDataView tableView;
 
+        private final JMenu sortMenu;
+
         public TableColumnContextMenu(TableDataView tableView, int tableIndex) {
                 this.table = tableView.getTableModel().getTable().get();
                 this.tableView = tableView;
                 this.tableIndex = tableIndex;
                 this.columnType = table.getColumnType(tableIndex);
 
-                add(buildSortMenu());
+                sortMenu = buildSortMenu();
+                add(sortMenu);
                 addSeparator();
                 add(buildFilterMenu());
                 addSeparator();
@@ -101,6 +104,10 @@ public final class TableColumnContextMenu extends JPopupMenu {
                 hideColumnItem.addActionListener(e -> tableView.hideColumn(tableView.getTableToViewIndex(tableIndex)));
 
                 add(hideColumnItem);
+        }
+
+        public JMenu getSortMenu() {
+                return sortMenu;
         }
 
         private JMenu buildSortMenu() {

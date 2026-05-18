@@ -5,7 +5,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -119,9 +118,12 @@ public final class OverlayPane extends JComponent {
         body.setOpaque(false);
         body.add(bodyLabel, BorderLayout.CENTER);
 
-        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        JPanel footer = new JPanel();
+        footer.setLayout(new BoxLayout(footer, BoxLayout.X_AXIS));
         footer.setOpaque(false);
+
         footer.add(skipButton);
+        footer.add(Box.createHorizontalGlue());
         footer.add(nextButton);
         footer.add(doneButton);
 

@@ -17,6 +17,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -39,6 +41,8 @@ public final class TableDataView extends JPanel {
     private final TableRowHeader rowHeader;
     private final TableToolBar toolBar;
     private final TablePagination paginationBar;
+
+    private TableColumnContextMenu columnContextMenu;
 
     private Set<Integer> hiddenViewIndex = new TreeSet<>();
 
@@ -69,8 +73,23 @@ public final class TableDataView extends JPanel {
 
                 int tableIndex = getViewToTableIndex(viewIndex);
                 if (SwingUtilities.isRightMouseButton(e)) {
-                    TableColumnContextMenu contextMenu = new TableColumnContextMenu(selfView, tableIndex);
-                    contextMenu.show(tableView.getTableHeader(), e.getX(), e.getY());
+                    columnContextMenu = new TableColumnContextMenu(selfView, tableIndex);
+                    columnContextMenu.show(tableView.getTableHeader(), e.getX(), e.getY());
+                    columnContextMenu.addPopupMenuListener(new PopupMenuListener() {
+                        @Override
+                        public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                        }
+
+                        @Override
+                        public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+                            columnContextMenu = null;
+                        }
+
+                        @Override
+                        public void popupMenuCanceled(PopupMenuEvent e) {
+                            columnContextMenu = null;
+                        }
+                    });
                 } else if (SwingUtilities.isLeftMouseButton(e)) {
                     selectColumn(viewIndex);
                     onColumnSelected(tableIndex);
@@ -379,6 +398,10 @@ public final class TableDataView extends JPanel {
 
     public TableModel getTableModel() {
         return tableModel;
+    }
+
+    public TableColumnContextMenu getColumnContextMenu() {
+        return columnContextMenu;
     }
 
 }

@@ -6,18 +6,22 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.AbstractButton;
+import javax.swing.JButton;
 import javax.swing.JLayeredPane;
 import javax.swing.SwingUtilities;
 
 import fr.univrennes.istic.l2gen.application.core.config.Config;
 import fr.univrennes.istic.l2gen.application.core.config.Lang;
 import fr.univrennes.istic.l2gen.application.gui.main.MainView;
+import fr.univrennes.istic.l2gen.application.gui.panels.report.ReportPanel;
 import fr.univrennes.istic.l2gen.application.gui.panels.report.views.settings.SettingView;
+import fr.univrennes.istic.l2gen.application.gui.panels.table.view.data.TableDataView;
 import fr.univrennes.istic.l2gen.application.gui.panels.table.view.data.TableToolBar;
 
 public final class QuickStart {
@@ -100,13 +104,16 @@ public final class QuickStart {
 
     private List<Step> buildSteps() {
         SettingView settingView = mainView.getReportPanel().getSettingView();
+        ReportPanel reportPanel = mainView.getReportPanel();
+        TableDataView tableView = mainView.getTablePanel().getTableView();
         List<Step> stepList = new ArrayList<>();
 
         stepList.add(new Step(
                 Lang.get("quickstart.step1.title"),
                 Lang.get("quickstart.step1.body", Lang.get("report.add.chart")),
                 () -> {
-                    ensurePanelsVisible();
+                    reportPanel.setVisible(true);
+                    settingView.setVisible(true);
                     settingView.showBase();
                 },
                 settingView::getAddChartButton));
@@ -115,7 +122,8 @@ public final class QuickStart {
                 Lang.get("quickstart.step2.title"),
                 Lang.get("quickstart.step2.body", Lang.get("report.settings.data")),
                 () -> {
-                    ensurePanelsVisible();
+                    reportPanel.setVisible(true);
+                    settingView.setVisible(true);
                     settingView.showChartSettings();
                 },
                 settingView::getChartSettingsPanel));
@@ -124,7 +132,8 @@ public final class QuickStart {
                 Lang.get("quickstart.step3.title"),
                 Lang.get("quickstart.step3.body", Lang.get("report.next.add")),
                 () -> {
-                    ensurePanelsVisible();
+                    reportPanel.setVisible(true);
+                    settingView.setVisible(true);
                     settingView.showChartSettings();
                 },
                 () -> {
@@ -136,11 +145,12 @@ public final class QuickStart {
                 Lang.get("quickstart.step4.title"),
                 Lang.get("quickstart.step4.body", Lang.get("report.toolbar.export")),
                 () -> {
-                    ensurePanelsVisible();
-                    mainView.getReportPanel().getNoteBook().setVisible(true);
-                    mainView.getReportPanel().refresh();
+                    reportPanel.setVisible(true);
+                    settingView.setVisible(true);
+                    reportPanel.getNoteBook().setVisible(true);
+                    reportPanel.refresh();
                 },
-                () -> mainView.getReportPanel().getNoteBook().getExportButton()));
+                reportPanel.getNoteBook()::getExportButton));
 
         stepList.add(new Step(
                 Lang.get("quickstart.step5.title"),
@@ -149,7 +159,7 @@ public final class QuickStart {
                     mainView.getTablePanel().setVisible(true);
                     mainView.resetSplit();
                 },
-                () -> mainView.getTablePanel().getTableView().getToolBar().getFilterButton()));
+                tableView.getToolBar()::getFilterButton));
 
         stepList.add(new Step(
                 Lang.get("quickstart.step6.title"),
@@ -158,7 +168,7 @@ public final class QuickStart {
                     mainView.getTablePanel().setVisible(true);
                     mainView.resetSplit();
                 },
-                () -> mainView.getTablePanel().getTableView().getToolBar().getSubtableButton()));
+                tableView.getToolBar()::getSubtableButton));
 
         stepList.add(new Step(
                 Lang.get("quickstart.step7.title"),
@@ -167,7 +177,7 @@ public final class QuickStart {
                     mainView.getTablePanel().setVisible(true);
                     mainView.resetSplit();
                 },
-                () -> mainView.getTablePanel().getTableView().getToolBar().getMergeButton()));
+                tableView.getToolBar()::getMergeButton));
 
         stepList.add(new Step(
                 Lang.get("quickstart.step8.title"),
@@ -177,19 +187,101 @@ public final class QuickStart {
                     mainView.resetSplit();
                 },
                 () -> {
-                    TableToolBar toolBar = mainView.getTablePanel().getTableView().getToolBar();
+                    detachAutoAdvance();
+                    TableToolBar toolBar = tableView.getToolBar();
+                    JButton btn = toolBar.getHideEmptyColumnsButton().isVisible() ? toolBar.getHideEmptyColumnsButton()
+                            : toolBar.getShowAllColumnsButton();
+                    btn.doClick();
+                },
+                () -> {
+                    TableToolBar toolBar = tableView.getToolBar();
                     if (toolBar.getHideEmptyColumnsButton().isVisible()) {
                         return toolBar.getHideEmptyColumnsButton();
                     }
                     return toolBar.getShowAllColumnsButton();
                 }));
 
-        return stepList;
-    }
+        stepList.add(new Step(Lang.get("quickstart.step9.title"),
+                Lang.get("quickstart.step9.body"),
+                () -> {
+                    mainView.getTablePanel().setVisible(true);
+                    mainView.resetSplit();
+                },
+                () -> {
+                    int columnIndex = 1;
+                    SwingUtilities.invokeLater(() -> {
+                        tableView.getTableView().getTableHeader().dispatchEvent(new MouseEvent(
+                                tableView.getTableView().getTableHeader(),
+                                MouseEvent.MOUSE_PRESSED,
+                                System.currentTimeMillis(),
+                                MouseEvent.BUTTON3_DOWN_MASK,
+                                tableView.getTableView().getTableHeader().getHeaderRect(columnIndex).x + 5,
+                                tableView.getTableView().getTableHeader().getHeaderRect(columnIndex).y + 5,
+                                1,
+                                true,
+                                MouseEvent.BUTTON3));
+                        tableView.getTableView().getTableHeader().dispatchEvent(new MouseEvent(
+                                tableView.getTableView().getTableHeader(),
+                                MouseEvent.MOUSE_RELEASED,
+                                System.currentTimeMillis(),
+                                MouseEvent.BUTTON3_DOWN_MASK,
+                                tableView.getTableView().getTableHeader().getHeaderRect(columnIndex).x + 5,
+                                tableView.getTableView().getTableHeader().getHeaderRect(columnIndex).y + 5,
+                                1,
+                                true,
+                                MouseEvent.BUTTON3));
+                        tableView.getTableView().getTableHeader().dispatchEvent(new MouseEvent(
+                                tableView.getTableView().getTableHeader(),
+                                MouseEvent.MOUSE_CLICKED,
+                                System.currentTimeMillis(),
+                                MouseEvent.BUTTON3_DOWN_MASK,
+                                tableView.getTableView().getTableHeader().getHeaderRect(columnIndex).x + 5,
+                                tableView.getTableView().getTableHeader().getHeaderRect(columnIndex).y + 5,
+                                1,
+                                true,
+                                MouseEvent.BUTTON3));
+                    });
+                },
+                () -> {
+                    return tableView.getTableView().getTableHeader();
+                }));
 
-    private void ensurePanelsVisible() {
-        mainView.getReportPanel().setVisible(true);
-        mainView.getReportPanel().getSettingView().setVisible(true);
+        stepList.add(new Step(
+                Lang.get("quickstart.step10.title"),
+                Lang.get("quickstart.step10.body"),
+                () -> {
+                    mainView.getTablePanel().setVisible(true);
+                    mainView.resetSplit();
+
+                    SwingUtilities.invokeLater(() -> {
+                        int columnIndex = 1;
+                        if (tableView.getColumnContextMenu() != null) {
+                            tableView.getColumnContextMenu().show(
+                                    tableView.getTableView(),
+                                    tableView.getTableView().getTableHeader().getHeaderRect(columnIndex).x + 5,
+                                    tableView.getTableView().getTableHeader().getHeaderRect(columnIndex).y + 5);
+                        }
+                    });
+                },
+                () -> {
+                    if (tableView.getColumnContextMenu() != null) {
+                        tableView.getColumnContextMenu().getSortMenu().doClick();
+                        Component sortItem = tableView.getColumnContextMenu().getSortMenu().getMenuComponent(0);
+                        sortItem.dispatchEvent(new MouseEvent(
+                                sortItem,
+                                MouseEvent.MOUSE_CLICKED,
+                                System.currentTimeMillis(),
+                                MouseEvent.BUTTON1_DOWN_MASK,
+                                sortItem.getWidth() / 2,
+                                sortItem.getHeight() / 2,
+                                1,
+                                false,
+                                MouseEvent.BUTTON1));
+                    }
+                },
+                tableView::getColumnContextMenu));
+
+        return stepList;
     }
 
     private void goToStep(int index) {

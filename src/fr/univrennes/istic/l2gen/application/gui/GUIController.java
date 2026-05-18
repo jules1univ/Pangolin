@@ -34,7 +34,7 @@ import fr.univrennes.istic.l2gen.application.core.filter.Filter;
 import fr.univrennes.istic.l2gen.application.gui.dialog.filter.FilterDialog;
 import fr.univrennes.istic.l2gen.application.gui.dialog.merge.MergeDialog;
 import fr.univrennes.istic.l2gen.application.gui.dialog.quickstart.QuickStart;
-import fr.univrennes.istic.l2gen.application.gui.dialog.quickstart.QuickStartDialog;
+import fr.univrennes.istic.l2gen.application.gui.dialog.quickstart.askuser.QuickStartDialog;
 import fr.univrennes.istic.l2gen.application.gui.dialog.subtable.SubtableDialog;
 import fr.univrennes.istic.l2gen.application.gui.main.MainView;
 import fr.univrennes.istic.l2gen.application.gui.shortcuts.Shortcuts;
@@ -67,7 +67,7 @@ public final class GUIController extends CoreController {
             }
         }
 
-        Config.putIfAbsent("settings.general.quickstart", true);
+        Config.put("settings.general.quickstart", true);
 
         Config.putIfAbsent("settings.startup.show_welcome", true);
         Config.putIfAbsent("settings.startup.check_update", true);
